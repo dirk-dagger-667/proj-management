@@ -1,4 +1,12 @@
-import { Component, signal, effect, inject } from '@angular/core';
+import {
+  Component,
+  signal,
+  effect,
+  inject,
+  DestroyRef,
+  ViewChild,
+  AfterViewInit,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -14,12 +22,22 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { debounceTime, switchMap } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  filter,
+  finalize,
+  map,
+  startWith,
+  switchMap,
+  tap,
+} from 'rxjs/operators';
+import { BehaviorSubject, forkJoin, of } from 'rxjs';
 import {
   AuditEntryDto,
   AuditType,
@@ -29,6 +47,7 @@ import {
   TaskType,
 } from '../../client/models';
 import { TasksService } from '../../client/services/tasks.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-task-details',
@@ -45,6 +64,7 @@ import { TasksService } from '../../client/services/tasks.service';
     MatButtonModule,
     MatTableModule,
     MatProgressSpinnerModule,
+    MatPaginatorModule,
     ScrollingModule,
     MatNativeDateModule,
     RouterLink,
@@ -56,6 +76,9 @@ export class TaskDetailsComponent {
   private fb = inject(FormBuilder);
   private taskService = inject(TasksService);
   private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
+  private _paginator!: MatPaginator;
+  private paginatorInitialized = false;
 
   // State
   task = signal<TaskItemDto | null>(null);
@@ -64,15 +87,21 @@ export class TaskDetailsComponent {
   loading = signal<boolean>(false);
   hasMoreAudits = signal<boolean>(true);
   page = signal<number>(1);
-  pageSize = signal<number>(50);
+  pageSize = signal<number>(10);
+  auditsCount = signal<number>(0);
 
   public taskTypes = Object.values(TaskType).filter((value) => typeof value !== 'number');
   public priorities = Object.values(Priority).filter((value) => typeof value !== 'number');
   public statuses = Object.values(Status).filter((value) => typeof value !== 'number');
   public auditTypes = Object.values(AuditType).filter((value) => typeof value !== 'number');
 
-  private scrollTrigger = new BehaviorSubject<void>(undefined);
   displayedColumns = ['auditType', 'metadata', 'createdAt'];
+
+  @ViewChild(MatPaginator) set paginator(p: MatPaginator | undefined) {
+    if (!p) return;
+    this._paginator = p;
+    this.initPaginatorStream();
+  }
 
   constructor() {
     this.taskForm = this.fb.group({
@@ -86,59 +115,76 @@ export class TaskDetailsComponent {
       createdAt: [null, Validators.required],
     });
 
-    this.route.paramMap.subscribe((params) => {
-      const taskId = params.get('id');
-      if (taskId) {
-        this.taskService.apiTasksIdGet(taskId).subscribe((task) => {
-          if (task) {
-            this.task.set(task);
-
-            this.taskForm.get('status')?.setValue(Status[task.status!]);
-            this.taskForm.get('priority')?.setValue(Priority[task.priority!]);
-            this.taskForm.get('type')?.setValue(TaskType[task.type!]);
-
-            this.taskForm.patchValue({
-              title: task.title,
-              description: task.description,
-              createdAt: task.createdAt,
-              estimate: task.estimate,
-              assignee: task.assignee,
-            });
-          }
-        });
-      }
-    });
-
-    effect(() => {
-      this.scrollTrigger
-        .pipe(
-          debounceTime(200),
-          switchMap(() => {
-            this.loading.set(true);
-            return this.taskService.apiTasksTaskIdAuditsGet(
-              this.task()?.id || '',
+    this.route.paramMap
+      .pipe(
+        takeUntilDestroyed(this.destroyRef), // or inject(DestroyRef)
+        tap(() => this.loading.set(true)),
+        map((params) => params.get('id')),
+        filter((taskId): taskId is string => !!taskId), // narrow to non-null string
+        switchMap((taskId) =>
+          forkJoin({
+            task: this.taskService.apiTasksIdGet(taskId),
+            audits: this.taskService.apiTasksTaskIdAuditsGet(
+              taskId,
               '',
               this.page(),
               this.pageSize()
-            );
+            ),
           })
-        )
-        .subscribe((audits) => {
-          this.audits.update((existing) => [...existing, ...audits]);
-          this.hasMoreAudits.set(audits.length === this.pageSize());
-          this.loading.set(false);
-          this.page.update((p) => p + 1);
-        });
-    });
+        ),
+        tap(({ task, audits }) => {
+          this.task.set(task);
+
+          this.taskForm.get('status')?.setValue(Status[task.status!]);
+          this.taskForm.get('priority')?.setValue(Priority[task.priority!]);
+          this.taskForm.get('type')?.setValue(TaskType[task.type!]);
+
+          this.taskForm.patchValue({
+            title: task!.title,
+            description: task.description,
+            createdAt: task.createdAt,
+            estimate: task.estimate,
+            assignee: task.assignee,
+          });
+
+          this.audits.set(audits.audits || []);
+          this.auditsCount.set(audits.count || 0);
+        }),
+        tap(() => this.loading.set(false))
+      )
+      .subscribe();
   }
 
-  onScroll(event: any): void {
-    var viewport = event as CdkVirtualScrollViewport;
-    const end = viewport.getRenderedRange().end;
-    const total = viewport.getDataLength();
-    if (end === total && this.hasMoreAudits() && !this.loading()) {
-      this.scrollTrigger.next();
-    }
+  private initPaginatorStream() {
+    if (this.paginatorInitialized) return;
+    this.paginatorInitialized = true;
+
+    this._paginator.page
+      .pipe(
+        startWith({ pageIndex: 0, pageSize: this.pageSize() }),
+        tap((page) => {
+          this.page.update((p) => page.pageIndex + 1);
+        }),
+        tap(() => this.loading.set(true)),
+        switchMap(() => {
+          return this.taskService
+            .apiTasksTaskIdAuditsGet(this.task()?.id!, '', this.page(), this.pageSize())
+            .pipe(
+              catchError((error) => {
+                console.log(error);
+                return of({ audits: [], count: 0 });
+              })
+            );
+        }),
+        map((response) => {
+          if (response === null) return [];
+          this.auditsCount.set(response?.count || 0);
+          return response.audits;
+        }),
+        tap((audits) => this.audits.set(audits || [])),
+        tap(() => this.loading.set(false))
+      )
+      .subscribe();
   }
 
   saveTask(): void {

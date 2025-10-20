@@ -12,6 +12,8 @@ namespace proj_mngmt_api.Features.ProjectsManagement.GetAudits
     string Metadata,
     DateTime CreatedAt);
 
+  public record AuditHistoryResponse(int Count, IEnumerable<AuditEntryDto> Audits);
+
   public class GetAuditsEndpoint : IEndpoint
   {
     public void MapEnpoint(WebApplication app)
@@ -20,21 +22,25 @@ namespace proj_mngmt_api.Features.ProjectsManagement.GetAudits
       .AddEndpointFilter<ValidationFilter<PaganationParameters>>();
 
     private static async Task<Results<
-      Ok<IEnumerable<AuditEntryDto>>,
+      Ok<AuditHistoryResponse>,
         ValidationProblem>> Handle([FromRoute] Guid taskId,
       ProjMngtDbContext dbContext,
       [AsParameters] PaganationParameters pageParams)
     {
-      var auditsDtos = await dbContext.Audits
+      var query = dbContext.Audits
         .AsNoTracking()
-        .Where(ae => ae.TaskId == taskId)
-        .OrderBy(ae => ae.CreatedAt)
+        .Where(ae => ae.TaskId == taskId);
+
+      var count = await query.CountAsync();
+
+      var auditsDtos = await query
+        .OrderByDescending(ae => ae.CreatedAt)
         .Skip((pageParams.Page - 1) * pageParams.Size)
         .Take(pageParams.Size)
         .Select(ae => new AuditEntryDto(ae.Id, AuditType.Updated, ae.Metadata, ae.CreatedAt))
         .ToListAsync();
 
-      return TypedResults.Ok<IEnumerable<AuditEntryDto>>(auditsDtos);
+      return TypedResults.Ok(new AuditHistoryResponse(count, auditsDtos));
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Component, effect, input, output } from '@angular/core';
+import { Component, effect, input, output, signal } from '@angular/core';
 import { TaskListItem } from '../../client/models';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';

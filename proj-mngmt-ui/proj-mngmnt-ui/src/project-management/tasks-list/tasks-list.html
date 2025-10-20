@@ -1,20 +1,22 @@
-<mat-form-field class="search-field" appearance="outline">
-  <input
-    matInput
-    [formControl]="searchControl"
-    (input)="onInput($event.target.value)"
-    placeholder="Search tasks"
-  />
-</mat-form-field>
+<div>
+  <mat-form-field class="search-field" appearance="outline">
+    <input
+      matInput
+      [formControl]="searchControl"
+      (input)="onInput($event.target.value)"
+      placeholder="Search tasks"
+    />
+  </mat-form-field>
 
-<mat-list>
-  @for (task of tasksInput(); track task.id) {
-  <mat-list-item class="task-item" (click)="openTask(task.id!)">
-    <mat-icon matListItemIcon class="task-icon">task</mat-icon>
-    <div class="task-content">
-      <h4 class="task-title">{{ task.title }}</h4>
-      <p class="task-status">{{ statusLabels[task.status!] }}</p>
-    </div>
-  </mat-list-item>
-  }
-</mat-list>
+  <mat-list>
+    @for (task of tasksInput(); track task.id) {
+    <mat-list-item class="task-item" (click)="openTask(task.id!)">
+      <mat-icon matListItemIcon class="task-icon">task</mat-icon>
+      <div class="task-content">
+        <h4 class="task-title">{{ task.title }}</h4>
+        <p class="task-status">{{ statusLabels[task.status!] }}</p>
+      </div>
+    </mat-list-item>
+    }
+  </mat-list>
+</div>

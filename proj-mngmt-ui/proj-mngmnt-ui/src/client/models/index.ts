@@ -21,6 +21,11 @@ export enum AuditType {
   Removed = 2,
 }
 
+export interface AuditHistoryResponse {
+  count?: number;
+  audits?: AuditEntryDto[];
+}
+
 export interface GetTasksResponse {
   totalCount?: number;
   tasks?: Array<TaskListItem>;
