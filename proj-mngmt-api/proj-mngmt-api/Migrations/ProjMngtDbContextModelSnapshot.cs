@@ -23,6 +23,9 @@ namespace proj_mngmt_api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("AuditType")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
 
@@ -41,7 +44,7 @@ namespace proj_mngmt_api.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.ToTable("Audits");
+                    b.ToTable("Audits", (string)null);
                 });
 
             modelBuilder.Entity("proj_mngmt_api.Domain.Project", b =>
@@ -57,7 +60,7 @@ namespace proj_mngmt_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Projects");
+                    b.ToTable("Projects", (string)null);
                 });
 
             modelBuilder.Entity("proj_mngmt_api.Domain.TaskItem", b =>
@@ -107,7 +110,7 @@ namespace proj_mngmt_api.Migrations
 
                     b.HasIndex("ProjectId");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Tasks", (string)null);
                 });
 
             modelBuilder.Entity("proj_mngmt_api.Domain.AuditEntry", b =>

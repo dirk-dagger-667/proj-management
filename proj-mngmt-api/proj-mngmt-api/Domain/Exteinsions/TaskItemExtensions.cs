@@ -1,4 +1,5 @@
-﻿using proj_mngmt_api.Features.ProjectsManagement.Tasks;
+﻿using proj_mngmt_api.Features.ProjectsManagement.GetTasks;
+using proj_mngmt_api.Features.ProjectsManagement.Tasks;
 
 namespace proj_mngmt_api.Domain.Exteinsions
 {

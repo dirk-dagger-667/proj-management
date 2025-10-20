@@ -358,3 +358,44 @@ proj-mngmt-api/**/.ionide/
 proj-mngmt-api/**/FodyWeavers.xsd
 
 # See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# Compiled output
+proj-mngmnt-ui/**/dist
+proj-mngmnt-ui/**/tmp
+proj-mngmnt-ui/**/out-tsc
+proj-mngmnt-ui/**/bazel-out
+
+# Node
+proj-mngmnt-ui/**/node_modules
+proj-mngmnt-ui/**/npm-debug.log
+proj-mngmnt-ui/**/yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+proj-mngmnt-ui/.vscode/*
+!proj-mngmnt-ui/.vscode/settings.json
+!proj-mngmnt-ui/.vscode/tasks.json
+!proj-mngmnt-ui/.vscode/launch.json
+!proj-mngmnt-ui/.vscode/extensions.json
+proj-mngmnt-ui/.history/*
+
+# Miscellaneous
+proj-mngmnt-ui/**/.angular/cache
+proj-mngmnt-ui/**/.sass-cache/
+proj-mngmnt-ui/**/connect.lock
+proj-mngmnt-ui/**/coverage
+proj-mngmnt-ui/**/libpeerconnection.log
+proj-mngmnt-ui/**/testem.log
+proj-mngmnt-ui/**/typings
+
+# System files
+proj-mngmnt-ui/**/.DS_Store
+proj-mngmnt-ui/**/Thumbs.db

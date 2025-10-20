@@ -1,0 +1,38 @@
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  margin: 8px 0;
+  background: white;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.task-icon {
+  margin-right: 12px;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.task-content {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.task-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.task-status {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.search-field {
+  display: flex;
+}

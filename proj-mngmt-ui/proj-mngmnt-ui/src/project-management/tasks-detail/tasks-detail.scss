@@ -1,0 +1,24 @@
+.task-details-card {
+  margin: 16px;
+  max-width: 800px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.audit-table {
+  height: 400px;
+  width: 100%;
+  display: block;
+}
+
+table {
+  width: 100%;
+}
+
+mat-spinner {
+  margin: 20px auto;
+}

@@ -36,8 +36,8 @@ namespace proj_mngmt_api.Infrastructure.Data
         task.HasIndex(t => t.CreatedAt).IsDescending();
 
         task.Property(t => t.Title).IsRequired().HasMaxLength(30);
-        task.Property(t => t.Type).IsRequired();
         task.Property(t => t.Description).HasMaxLength(500);
+        task.Property(t => t.Type).IsRequired();
         task.Property(t => t.Assignee).HasMaxLength(20);
         task.Property(t => t.Priority).IsRequired();
         task.Property(t => t.Status).IsRequired();

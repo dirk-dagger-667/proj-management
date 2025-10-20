@@ -1,0 +1,16 @@
+.board {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+.column {
+  flex: 1;
+  min-height: 400px;
+}
+.task-item {
+  padding: 8px;
+  margin: 8px 0;
+  background: white;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}

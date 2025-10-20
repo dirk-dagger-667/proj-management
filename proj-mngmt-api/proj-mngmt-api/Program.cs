@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using proj_mngmt_api.Features;
 using proj_mngmt_api.Features.ProjectsManagement.Tasks;
+using proj_mngmt_api.Infrastructure;
 using proj_mngmt_api.Infrastructure.Data;
 using System.Reflection;
 
@@ -19,6 +20,15 @@ if(builder.Environment.IsDevelopment())
   builder.Services.AddSwaggerGen();
 }
 
+builder.Services.AddCors(options =>
+{
+  options.AddPolicy(name: ProjMngmtConstants.AllowCorsPolicyName,
+                    policy =>
+                    {
+                      policy.WithOrigins("http://localhost:4200");
+                    });
+});
+
 ServiceDescriptor[] serviceDescriptors =Assembly.GetExecutingAssembly().DefinedTypes
   .Where(t => t.IsAssignableTo(typeof(IEndpoint)) && t.IsClass && !t.IsAbstract)
   .Select(t => ServiceDescriptor.Transient(typeof(IEndpoint), t))
@@ -26,10 +36,13 @@ ServiceDescriptor[] serviceDescriptors =Assembly.GetExecutingAssembly().DefinedT
 
 builder.Services.TryAddEnumerable(serviceDescriptors);
 builder.Services.AddValidatorsFromAssemblyContaining<TaskItemValidator>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseExceptionHandler();
 
 await using(var scope = app.Services.CreateAsyncScope())
 {
@@ -50,6 +63,8 @@ if(app.Environment.IsDevelopment())
   app.UseSwagger();
   app.UseSwaggerUI();
 }
+
+app.UseCors(ProjMngmtConstants.AllowCorsPolicyName);
 
 app.Run();
 

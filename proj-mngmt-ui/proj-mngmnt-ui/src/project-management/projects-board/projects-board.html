@@ -1,0 +1,22 @@
+<div class="board" cdkDropListGroup>
+  @for (status of statusesInput; track status) {
+  <div class="column">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ statusLabels[status] }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div>
+          @for (task of getTasksByStatus(status); track task.id) {
+          <div class="task-item" (click)="emitTaskId(task.id!)">
+            <strong>{{ task.title }}</strong
+            ><br />
+            {{ statusLabels[task.status!] }}
+          </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  }
+</div>

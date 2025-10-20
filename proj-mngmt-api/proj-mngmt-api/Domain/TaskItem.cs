@@ -19,7 +19,7 @@
     public Guid ConcurrencyToken { get; set; }
 
     public Guid ProjectId { get; set; }
-    public required Project Project { get; set; }
+    public Project Project { get; set; }
 
     public List<AuditEntry> AuditEntries { get; set; } = new();
   }

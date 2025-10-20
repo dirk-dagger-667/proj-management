@@ -1,4 +1,4 @@
-﻿using proj_mngmt_api.Features.Projects.Projects;
+﻿using proj_mngmt_api.Features.Projects.GetProjects;
 
 namespace proj_mngmt_api.Domain.Exteinsions
 {
